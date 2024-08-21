@@ -5,6 +5,7 @@ import jakarta.persistence.EntityTransaction;
 import kassandrafalsitta.entities.Event;
 
 import java.util.List;
+import java.util.UUID;
 
 public class EventDAO {
     //attributi
@@ -26,24 +27,24 @@ public class EventDAO {
         System.out.println("gli eventi sono stati aggiunti con successo");
     }
 
-    public Event findById(Long eventId) {
+    public Event findById(UUID eventId) {
         Event eventFound = null;
         try {
             eventFound = em.find(Event.class, eventId);
 
             if (eventFound == null) System.out.println("L'evento con id: " + eventId + " non è stato trovato");
             else {
-                System.out.println("\necco l'evento che hai cercato:");
+                System.out.println("\nEcco l'evento che hai cercato:");
                 System.out.println(eventFound);
             }
 
         } catch (Exception e) {
-            System.out.println("Non è stato possibile rimuovere l'evento con id: " + eventId);
+            System.out.println("Non è stato possibile cercare l'evento con id: " + eventId + "\n");
         }
         return eventFound;
     }
 
-    public void findByIdAndDelete(long eventId) {
+    public void findByIdAndDelete(UUID eventId) {
         try {
             Event eventFound = this.findById(eventId);
             EntityTransaction transaction = em.getTransaction();
