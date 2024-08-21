@@ -2,59 +2,28 @@ package kassandrafalsitta.entities;
 
 import com.github.javafaker.Faker;
 import jakarta.persistence.*;
+import kassandrafalsitta.dao.LocationDAO;
 import kassandrafalsitta.enums.EventType;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.function.Supplier;
 
 @Entity
 @Table(name = "events")
 public class Event {
-    //supplier
-    public static Supplier<Event> eventSupplierWithScanner = () -> {
-        Scanner sc = new Scanner(System.in);
-        while (true) {
-            try {
-                System.out.println("inserisci titolo");
-                String title = sc.nextLine();
-                System.out.println("inserisci data");
-                LocalDate date = LocalDate.parse(sc.nextLine());
-                System.out.println("inserisci descrizione");
-                String description = sc.nextLine();
-                System.out.println("inserisci tipo: PUBBLICO o PRIVATO");
-                EventType type = EventType.valueOf(sc.nextLine());
-                System.out.println("inserisci numero massimo di partecipanti");
-                int nMaxPartecipants = Integer.parseInt(sc.nextLine());
-
-
-                ;
-                return new Event(title, date, description, type, nMaxPartecipants);
-
-            } catch (InputMismatchException e) {
-                System.out.println("inserisci i valori correttamente");
-
-            } catch (Exception e) {
-                System.out.println("Errore: " + e.getMessage());
-            }
-        }
-    };
     static Faker fk = new Faker();
+
+    ;
     static Random r = new Random();
-    public static Supplier<Event> eventSupplier = () -> {
-        EventType[] eventTypeList = EventType.values();
-        LocalDate date = fk.date().birthday().toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate();
-        return new Event(fk.esports().event(), date, fk.lorem().fixedString(50), eventTypeList[r.nextInt(eventTypeList.length)], r.nextInt(1, 40));
-    };
     //attributi
     @Id
     @GeneratedValue
     @Column(name = "event_id")
     private UUID id;
     private String title;
+
+    ;
     @Column(name = "event_date")
     private LocalDate eventDate;
     private String description;
@@ -68,21 +37,57 @@ public class Event {
     @ManyToOne
     @JoinColumn(name = "location_id")
     private Location locationId;
-
     //costruttore
     public Event() {
     }
-
-    public Event(String title, LocalDate eventDate, String description, EventType eventType, int maximumNumberOfParticipants) {
+    public Event(String title, LocalDate eventDate, String description, EventType eventType, int maximumNumberOfParticipants, Location locationId) {
         this.title = title;
         this.eventDate = eventDate;
         this.description = description;
         this.eventType = eventType;
         this.maximumNumberOfParticipants = maximumNumberOfParticipants;
+        this.locationId = locationId;
+    }
+
+    //supplier
+    public static Event eventSupplierWithScanner(LocationDAO ld) {
+        Scanner sc = new Scanner(System.in);
+        while (true) {
+            try {
+                System.out.println("inserisci titolo");
+                String title = sc.nextLine();
+                System.out.println("inserisci data");
+                LocalDate date = LocalDate.parse(sc.nextLine());
+                System.out.println("inserisci descrizione");
+                String description = sc.nextLine();
+                System.out.println("inserisci tipo: PUBBLICO o PRIVATO");
+                EventType type = EventType.valueOf(sc.nextLine());
+                System.out.println("inserisci numero massimo di partecipanti");
+                int nMaxPartecipants = Integer.parseInt(sc.nextLine());
+                System.out.println("inserisci l'id della location");
+                UUID locationId = UUID.fromString(sc.nextLine());
+
+                return new Event(title, date, description, type, nMaxPartecipants, ld.findById(locationId));
+
+            } catch (InputMismatchException e) {
+                System.out.println("inserisci i valori correttamente");
+
+            } catch (Exception e) {
+                System.out.println("Errore: " + e.getMessage());
+            }
+        }
+    }
+
+    public static Event eventSupplier(List<Location> locationList) {
+        EventType[] eventTypeList = EventType.values();
+        LocalDate date = fk.date().birthday().toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+        return new Event(fk.esports().event(), date, fk.lorem().fixedString(50), eventTypeList[r.nextInt(eventTypeList.length)], r.nextInt(1, 40), locationList.get(r.nextInt(locationList.size())));
     }
 
     //metodi
-    public static List<Event> createEvent() {
+    public static List<Event> createEvent(LocationDAO ld, List<Location> locationList) {
         List<Event> eventList = new ArrayList<>();
         Scanner sc = new Scanner(System.in);
         int numOfEvents;
@@ -107,12 +112,12 @@ public class Event {
             switch (choice) {
                 case 1:
                     for (int i = 0; i < numOfEvents; i++) {
-                        eventList.add(eventSupplierWithScanner.get());
+                        eventList.add(eventSupplierWithScanner(ld));
                     }
                     break;
                 case 2:
                     for (int i = 0; i < numOfEvents; i++) {
-                        eventList.add(eventSupplier.get());
+                        eventList.add(eventSupplier(locationList));
                     }
                     System.out.println("eventi creati con successo");
                     break;
@@ -127,9 +132,10 @@ public class Event {
         } catch (Exception e) {
             System.out.println("Errore: " + e.getMessage());
         }
-        ;
+
         return eventList;
     }
+
     //getter e setter
 
     public UUID getId() {
