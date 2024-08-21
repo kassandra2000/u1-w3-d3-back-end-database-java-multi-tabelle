@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import kassandrafalsitta.enums.EventType;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name = "events")
@@ -11,7 +12,7 @@ public class Event {
     //attributi
     @Id
     @GeneratedValue
-    private Long id;
+    private UUID id;
     private String title;
     @Column(name = "event_date")
     private LocalDate eventDate;
@@ -36,7 +37,7 @@ public class Event {
 
     //getter e setter
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
